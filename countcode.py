@@ -4,12 +4,12 @@ __author__ = 'JiangHE'
 
 '''
 Count your code 
-Default: Count py files in current dir(if not assign filetype and dir)
 Usage: countcode.py filetype dir
+Default: Count py files in current dir(if not assign filetype and dir)
 '''
 
 # Create time   : 2016-03-29 15:13:11
-# Last modified : 2016-04-05 16:18:54
+# Last modified : 2016-04-05 17:05:56
 #########################################################
 
 import os, sys
