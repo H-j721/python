@@ -23,7 +23,7 @@ class CountCode:
         self.dirs = directory
         self.fileType = ftype
 
-    # Including subdirectories
+    # Traverse all directories, including subdirectories
     def recur_counter(self):
         file_num = 0
         try:
