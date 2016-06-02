@@ -1,3 +1,4 @@
+import itertools
 # -*- coding:utf-8 -*-
 
 """
@@ -7,7 +8,6 @@ Print Spiral Matrix
 # Create time   : 2016-04-03 21:21
 # Last modified : 2016-04-03 21:52
 #########################################################
-import itertools
 
 
 def spiral(n, m):
