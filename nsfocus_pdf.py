@@ -14,7 +14,7 @@ Get qyjs and zjsj pdf from NSFOCUS
 
 
 # Create time   : 2016-06-02 14:26:04
-# Last modified : 2016-06-02 22:17:18
+# Last modified : 2016-06-02 23:29:00
 #########################################################
 
 # reload(sys)
@@ -191,7 +191,7 @@ if __name__ == '__main__':
     """
     Download qyjs
     """
-    # path = '.\\NS_QYJS'
+    # path = '\\NS_QYJS'
     # spider = NsPDF(path, agent)
 
     """
