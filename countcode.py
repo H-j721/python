@@ -31,6 +31,7 @@ class CountCode:
 			print 'Please check your directory name !'
 			sys.exit()
 
+		print
 		print '[',self.dirs,
 		print "including %d subdirectories" % len(subdirs),']'
 		for (thisdir, subshere, fileshere) in os.walk(self.dirs):
@@ -46,6 +47,7 @@ class CountCode:
 					file.close()
 		print 'There are %d %s files' % (fnum, self.filetype)
 		print "And %d lines code there, including comments" % self.line
+		print
 			
 	# Only Traverse current directory
 	def directCount(self):
@@ -56,15 +58,17 @@ class CountCode:
 			print 'Please check your directory name !'
 			sys.exit()
 		print '[',self.dirs,']'
-		filelist = [f for f in L if f[-tlen:]==self.filetype]
-		print 'There are %d %s files' % (len(filelist), self.filetype)
+		filelist = [f for f in L if (f[-tlen:]==self.filetype and os.path.isfile(f))]
+		print 'There are %d %s files in the Current Dir Level !' % (len(filelist), self.filetype)
+		print 'Do not include subdirectories !'
 		os.chdir(self.dirs)
 		for f in filelist:
 			file = open(f)
 			while(file.readline()):
 				self.line += 1
 			file.close()
-		print "And %d lines code there, including comments" % self.line
+		if(len(filelist) != 0):
+			print "And %d lines code there, including comments" % self.line
 
 
 if __name__ == '__main__':
