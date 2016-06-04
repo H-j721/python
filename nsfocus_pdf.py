@@ -1,10 +1,11 @@
+# -*- coding:utf-8 -*-
+
 import re
 import os
-# import sys
 import time
 import urllib2
 
-# -*- coding:utf-8 -*-
+from multiprocessing import Pool
 
 __author__ = 'JiangHE'
 
@@ -14,14 +15,17 @@ Get qyjs and zjsj pdf from NSFOCUS
 
 
 # Create time   : 2016-06-02 14:26:04
-# Last modified : 2016-06-02 23:29:00
+# Last modified : 2016-06-04 15:26:09
 #########################################################
 
+# import sys
 # reload(sys)
 # sys.setdefaultencoding('utf-8')
 
-
 def mkdir(rpath):
+    """
+    mkdir to save files
+    """
     rpath = rpath.strip()
     is_dir_exists = os.path.exists(rpath)
     if is_dir_exists is False:
@@ -30,9 +34,22 @@ def mkdir(rpath):
 
 class NsPDF(object):
     """
-    option: 1 for qyjs, others for zjsj
+    num:        number of items have download
+    firstPage:  the first page number(default 1)
+    curPage:    the current page number(increase 1 everytime)
+    totalPage:  number of total pages(3)
+    totalFiles: number of total item(41)
+    outOfRange: if curPage>totalPage
+    paths:      directory to save files
+    user_agent: to construct headers
+    headers:    need in http Request header
+    baseUrl:    http://www.nsfocus.com.cn
+    htmlExt:    string .html
+    option:     1 for qyjs, others for zjsj
+    subUrl:     one of item below decide by option
+    subUrl_qyjs:    /research/qyjs
+    subUrl_zjsj:    /research/down
     """
-
     def __init__(self, paths, user_agent, option=1):
         self.num = 0
         self.firstPage = 1
@@ -53,31 +70,40 @@ class NsPDF(object):
             self.subUrl = self.subUrl_zjsj
 
     def fetch_html(self):
+        """
+        :return: html source of current page
+        """
         if self.curPage == self.firstPage:
             page_url = self.baseUrl + self.subUrl + self.htmlExt
         else:
             page_url = self.baseUrl + self.subUrl + '_' + str(self.curPage) + self.htmlExt
         self.curPage += 1
-        print '\nRequest from %s...' % page_url
+		"""
+		use print() if there is only one item to print
+		"""
+        print('\nRequest from %s...' % page_url)
         try:
             request = urllib2.Request(page_url, headers=self.headers)
             response = urllib2.urlopen(request)
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             if hasattr(e, 'code'):
-                print e.code,
+                print(e.code)
             if hasattr(e, 'reason'):
-                print e.reason
+                print(e.reason)
             return None
-        except urllib2.URLError, e:
+        except urllib2.URLError as e:
             if hasattr(e, 'code'):
-                print e.code,
+                print(e.code)
             if hasattr(e, 'reason'):
-                print e.reason
+                print(e.reason)
             return None
         else:
             return response.read().decode('utf-8')
 
     def get_total_num(self):
+        """
+        get total page number and item number (from the bottom of page)
+        """
         html = spider.fetch_html()
         self.curPage -= 1
         """
@@ -97,10 +123,17 @@ class NsPDF(object):
                 return False
 
     def filter_resource_urls(self, html):
+        """
+        :param html: html source
+        :return: resource urls and  their titles
+        """
         title_pattern = re.compile('<a\s*title="(.*?)"\s*target')
         url_pattern = re.compile('<a\s*title.*?target.*?href="(.*?)">')
         titles = re.findall(title_pattern, html)
         urls = re.findall(url_pattern, html)
+		"""
+		cannot use print(), tuple will be print
+		"""
         print 'Page', str(self.curPage - 1), 'has', str(len(urls)), 'pdf files.'
         if len(titles) == len(urls) and titles is not None:
             title_url_pairs = zip(titles, urls)
@@ -109,6 +142,10 @@ class NsPDF(object):
             return None
 
     def filter_resource_urls_2(self, html):
+        """
+        :param html: html source
+        :return: resource urls and their titles(containing data)
+        """
         date_pattern = re.compile('<span>(\d{4}-\d{2}-\d{2})</span>')
         title_pattern = re.compile('<a\s*title="(.*?)"\s*target')
         url_pattern = re.compile('<a\s*title.*?target.*?href="(.*?)">')
@@ -133,6 +170,9 @@ class NsPDF(object):
     """
 
     def save_pdf(self, title_url_pair):
+        """
+        :param title_url_pair: resource url and it's title
+        """
         filename = self.paths + '/' + title_url_pair[0] + '.pdf'
         url = self.baseUrl + title_url_pair[1][2:]
         # print isinstance(title_url_pair[0], unicode)
@@ -142,16 +182,16 @@ class NsPDF(object):
         print str(title_url_pair[0].encode('utf-8')) + '.pdf'
         try:
             pdf = urllib2.urlopen(url)
-        except urllib2.URLError, e:
+        except urllib2.URLError as e:
             if hasattr(e, 'code'):
-                print e.code,
+                print(e.code)
             if hasattr(e, 'reason'):
-                print e.reason
-        except IOError, e:
+                print(e.reason)
+        except IOError as e:
             if hasattr(e, 'code'):
-                print e.code,
+                print(e.code)
             if hasattr(e, 'reason'):
-                print e.reason
+                print(e.reason)
         else:
             self.num += 1
             data = pdf.read()
@@ -159,6 +199,9 @@ class NsPDF(object):
                 f.write(data)
 
     def get_pdf_one_by_one(self, num):
+        """
+        :param num: number of items(on a single page) excepted to download
+        """
         html_content = self.fetch_html()
         if html_content is not None:
             title_url_pairs = self.filter_resource_urls(html_content)
@@ -170,19 +213,33 @@ class NsPDF(object):
                 print 'Spider has downloaded', str(self.num), 'pdf files.'
 
     def get_pdf_by_page(self):
+        """
+        download pdf files on a single page
+        """
         html_content = self.fetch_html()
         if html_content is not None:
             title_url_pairs = self.filter_resource_urls(html_content)
             if title_url_pairs is not None:
-                print 'Downloading there pdf files...'
+                print('Downloading there pdf files...')
                 [self.save_pdf(pair) for pair in title_url_pairs]
                 print 'Spider has download', str(self.num), 'pdf files.'
             if self.curPage - 1 == self.totalPage:
                 if self.num != self.totalFiles:
-                    print '\nThere are %d file cannot download' % (self.totalFiles - self.num)
+                    print('\nThere are %d file cannot download' % (self.totalFiles - self.num))
                     # else:
-                    # 	self.outOfRange = True
-                    # 	print 'Out of Page Range!'
+                    #     self.outOfRange = True
+                    #     print 'Out of Page Range!'
+
+    def get_pdf_use_multiprocess(self):
+        """
+        use multiprocess to divide out work simultaneously
+        """
+        html_content = self.fetch_html()
+        if html_content is not None:
+            title_url_pairs = self.filter_resource_urls(html_content)
+            if title_url_pairs is not None:
+                pool = Pool()
+                pool.map(self.save_pdf, title_url_pairs)
 
 
 if __name__ == '__main__':
@@ -191,13 +248,13 @@ if __name__ == '__main__':
     """
     Download qyjs
     """
-    # path = '\\NS_QYJS'
+    # path = '.\\NS_QYJS'
     # spider = NsPDF(path, agent)
 
     """
     Download zjsj
     """
-    path = '.\\NS_ZJSJ'
+    path = '\\NS_ZJSJ'
     spider = NsPDF(path, agent, 0)
 
     mkdir(spider.paths)
@@ -215,16 +272,17 @@ if __name__ == '__main__':
     """
     Download files on the first page
     """
-    # spider.get_pdf_by_page()
+    spider.get_pdf_by_page()
+    # spider.get_pdf_use_multiprocess()
 
     """
     Download all the files
     """
-    if spider.get_total_num() is True:
-        while spider.curPage <= spider.totalPage:
-            spider.get_pdf_by_page()
-    else:
-        print 'Can not get response from server, Check Network Connection...'
+    # if spider.get_total_num() is True:
+    #     while spider.curPage <= spider.totalPage:
+    #         spider.get_pdf_by_page()
+    # else:
+    #     print 'Can not get response from server, Check Network Connection...'
 
     end_time = time.time()
-    print '\nIt spends %.2f seconds.' % (end_time - start_time)
+    print('\nIt spends %.2f seconds.' % (end_time - start_time))
