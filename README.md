@@ -1,3 +1,7 @@
+### Python Version
+`Python 2.7.10`
+
+
 #List of code
 *    __`nsfocus_pdf.py`__   下载绿盟科技-安全研究专栏 PDF
 *    `code_counter.py`      统计代码行数
