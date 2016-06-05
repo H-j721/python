@@ -15,7 +15,7 @@ Get qyjs and zjsj pdf from NSFOCUS
 
 
 # Create time   : 2016-06-02 14:26:04
-# Last modified : 2016-06-04 15:26:09
+# Last modified : 2016-06-04 15:39:54
 #########################################################
 
 # import sys
@@ -248,19 +248,21 @@ if __name__ == '__main__':
     """
     Download qyjs
     """
-    # path = '.\\NS_QYJS'
+    # path = 'D:\\Hij\\Desktop\\NS_QYJS'
     # spider = NsPDF(path, agent)
 
     """
     Download zjsj
     """
-    path = '\\NS_ZJSJ'
+    path = 'D:\\Hij\\Desktop\\NS_ZJSJ'
     spider = NsPDF(path, agent, 0)
 
     mkdir(spider.paths)
 
     start_time = time.time()
 
+    # 3 method to download files
+    #########################################################
     """
     Download files one by one
     """
@@ -283,6 +285,7 @@ if __name__ == '__main__':
     #         spider.get_pdf_by_page()
     # else:
     #     print 'Can not get response from server, Check Network Connection...'
+    #########################################################
 
     end_time = time.time()
     print('\nIt spends %.2f seconds.' % (end_time - start_time))
