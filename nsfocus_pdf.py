@@ -15,7 +15,7 @@ Get qyjs and zjsj pdf from NSFOCUS
 
 
 # Create time   : 2016-06-02 14:26:04
-# Last modified : 2016-06-04 15:39:54
+# Last modified : 2016-06-06 19:44:27
 #########################################################
 
 # import sys
@@ -59,7 +59,8 @@ class NsPDF(object):
         self.outOfRange = False
         self.paths = paths
         self.user_agent = user_agent
-        self.headers = {'User-Agent': self.user_agent}
+        self.referer = 'http://www.nsfocus.com.cn'
+        self.headers = {'User-Agent': self.user_agent, 'Referer': self.referer}
         self.baseUrl = 'http://www.nsfocus.com.cn'
         self.subUrl_qyjs = '/research/qyjs'
         self.subUrl_zjsj = '/research/down'
@@ -78,9 +79,11 @@ class NsPDF(object):
         else:
             page_url = self.baseUrl + self.subUrl + '_' + str(self.curPage) + self.htmlExt
         self.curPage += 1
-		"""
-		use print() if there is only one item to print
-		"""
+        self.referer = page_url
+        self.headers = {'User-Agent': self.user_agent, 'Referer': self.referer}
+        """
+        use print() if there is only one item to print
+        """
         print('\nRequest from %s...' % page_url)
         try:
             request = urllib2.Request(page_url, headers=self.headers)
@@ -127,16 +130,12 @@ class NsPDF(object):
         :param html: html source
         :return: resource urls and  their titles
         """
-        title_pattern = re.compile('<a\s*title="(.*?)"\s*target')
-        url_pattern = re.compile('<a\s*title.*?target.*?href="(.*?)">')
-        titles = re.findall(title_pattern, html)
-        urls = re.findall(url_pattern, html)
-		"""
-		cannot use print(), tuple will be print
-		"""
-        print 'Page', str(self.curPage - 1), 'has', str(len(urls)), 'pdf files.'
-        if len(titles) == len(urls) and titles is not None:
-            title_url_pairs = zip(titles, urls)
+        pattern_title = '<li>.*?<a\s*title="(.*?)"\s*target.*?href="(.*?)">'
+        pattern = re.compile(pattern_title, re.S)
+        title_url_pairs = re.findall(pattern, html)
+        print 'Page', str(self.curPage - 1), 'has', str(len(title_url_pairs)), 'pdf files.'
+        if title_url_pairs is not None:
+            print title_url_pairs
             return title_url_pairs
         else:
             return None
